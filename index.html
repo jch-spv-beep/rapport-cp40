@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SP PLO">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e2d5c">
+<link <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Rapport d’intervention – Sapeurs-Pompiers PLO</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --blue:#0e2d5c;--blue-mid:#1a6eb5;--blue-light:#e8f2fa;
+  --accent:#c0392b;--gray-bg:#f5f6f8;--gray-border:#dde1e7;
+  --gray-text:#64748b;--text:#1a1d23;--white:#fff;--radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--gray-bg);color:var(--text);min-height:100vh}
+header{background:white;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;border-bottom:2px solid #edf0f4;position:sticky;top:0;z-index:100}
+.logo-wrap{display:flex;align-items:center;gap:.6rem}
+.logo-wrap img{height:42px;width:auto}
+.logo-wrap .org{font-size:.78rem;font-weight:700;color:var(--blue);line-height:1.3}
+.logo-wrap .org span{display:block;font-weight:400;color:var(--gray-text);font-size:.7rem}
+.header-actions{display:flex;gap:.5rem;flex-shrink:0}
+.btn-action{display:flex;align-items:center;justify-content:center;gap:.35rem;border:none;border-radius:10px;min-height:44px;padding:0 1rem;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;-webkit-appearance:none;appearance:none;transition:opacity .15s}
+.btn-action:active{opacity:.75}
+.btn-pdf{background:var(--blue-light);color:var(--blue);border:1.5px solid #c5d9ee}
+.btn-mail{background:var(--accent);color:white}
+.container{max-width:860px;margin:0 auto;padding:1rem .75rem 5rem}
+.section{background:white;border-radius:var(--radius);border:1px solid var(--gray-border);margin-bottom:1.1rem;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.section-header{background:var(--blue);color:white;padding:.8rem 1rem;display:flex;align-items:center;gap:.5rem;font-size:.88rem;font-weight:700;cursor:pointer;user-select:none;min-height:44px}
+.section-header .num{background:rgba(255,255,255,.22);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0}
+.section-header .chev{margin-left:auto;font-size:.7rem;transition:transform .2s}
+.section-header.coll .chev{transform:rotate(-90deg)}
+.section-body{padding:1rem}
+.section-body.coll{display:none}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem}
+.row.t3{grid-template-columns:1fr 1fr 1fr}
+.row.t1{grid-template-columns:1fr}
+@media(max-width:520px){.row,.row.t3{grid-template-columns:1fr}}
+label{display:block;font-size:.72rem;font-weight:700;color:var(--gray-text);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem}
+input[type=text],input[type=date],input[type=number],textarea,select,select{
+  width:100%;padding:.65rem .75rem;border:1.5px solid var(--gray-border);border-radius:8px;
+  font-size:1rem;font-family:inherit;color:var(--text);background:white;
+  -webkit-appearance:none;appearance:none;outline:none;transition:border-color .15s;min-height:44px}
+/* Prevent iOS zoom on focus — font-size must be >= 16px */
+@media (max-width:1024px){
+  input[type=text],input[type=date],input[type=number],textarea,select,select{font-size:16px}
+}
+input:focus,textarea:focus,select:focus{border-color:var(--blue-mid);box-shadow:0 0 0 3px rgba(26,110,181,.12)}
+textarea{resize:vertical;min-height:80px;line-height:1.5}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .75rem center;padding-right:2.2rem}
+.auto-sync{background:#eaf4fb!important;border-color:#1a6eb5!important}
+.heure-row{display:flex;gap:.5rem;align-items:center}
+.heure-row select,.heure-row input{flex:1;min-width:0}
+.heure-sep{font-weight:700;font-size:1.1rem;flex-shrink:0}
+.radio-row{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;padding:.3rem 0}
+.radio-item{display:flex;align-items:center;gap:.4rem;min-height:44px;cursor:pointer}
+.radio-item input[type=radio]{width:18px;height:18px;accent-color:var(--blue);cursor:pointer;flex-shrink:0}
+.radio-item span{font-size:.95rem;cursor:pointer}
+.addr-wrap{position:relative}
+.addr-drop{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--blue-mid);border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:999;font-size:.9rem;box-shadow:0 4px 12px rgba(0,0,0,.12);display:none}
+.addr-drop div{padding:.65rem .75rem;cursor:pointer;min-height:44px;display:flex;align-items:center}
+.addr-drop div:hover,.addr-drop div.hi{background:var(--blue-light)}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--blue);color:white;padding:.8rem 1.6rem;border-radius:30px;font-weight:600;font-size:.88rem;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+#loader{display:none;position:fixed;inset:0;background:rgba(14,45,92,.88);z-index:10000;flex-direction:column;align-items:center;justify-content:center;gap:1rem;color:white;font-size:1rem;font-weight:600}
+#loader.on{display:flex}
+.spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== LISTE DE PRESENCE ===== */
+.presence-info{display:grid;grid-template-columns:1fr 1fr;gap:.35rem .6rem;background:var(--blue-light);border:1.5px solid #c5d9ee;border-radius:8px;padding:.6rem .8rem;margin-bottom:.85rem}
+.pi-label{font-size:.68rem;font-weight:700;color:var(--gray-text);text-transform:uppercase;letter-spacing:.04em;display:block}
+.pi-val{font-size:.85rem;font-weight:600;color:var(--blue);display:block}
+.presence-cols{display:grid;grid-template-columns:1fr;gap:0}
+.presence-thead{display:grid;grid-template-columns:24px 1fr 90px;align-items:center;padding:.25rem .5rem;background:var(--blue);color:white;border-radius:6px 6px 0 0;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;gap:.4rem}
+.presence-thead .th-nom{flex:1}
+.presence-thead .th-h{text-align:center}
+.presence-row{display:grid;grid-template-columns:24px 1fr 90px;align-items:center;padding:.15rem .5rem;border-bottom:1px solid #edf0f4;gap:.4rem;min-height:32px}
+.presence-row:last-child{border-bottom:none}
+.presence-row:nth-child(even){background:#f8f9fb}
+.presence-row.checked{background:#eaf4fb}
+.p-check{position:relative;flex-shrink:0;width:20px;height:20px;cursor:pointer}
+.p-check input{opacity:0;position:absolute;inset:0;margin:0;cursor:pointer;width:100%;height:100%}
+.p-check .box{position:absolute;inset:0;border:2px solid var(--gray-border);border-radius:4px;background:white;transition:background .12s,border-color .12s;pointer-events:none}
+.p-check input:checked ~ .box{background:var(--blue);border-color:var(--blue)}
+.p-check .box::after{content:'';position:absolute;left:5px;top:2px;width:5px;height:9px;border:2px solid white;border-top:none;border-left:none;transform:rotate(45deg);opacity:0;transition:opacity .1s}
+.p-check input:checked ~ .box::after{opacity:1}
+.p-nom{font-size:.78rem;color:var(--text);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.presence-row.checked .p-nom{font-weight:600;color:var(--blue)}
+.h-input{width:100%;text-align:center;padding:.2rem .4rem;border:1.5px solid var(--gray-border);border-radius:5px;font-size:.82rem;font-weight:700;color:var(--blue);background:white;min-height:28px;-webkit-appearance:none;outline:none;box-sizing:border-box}
+.h-input:focus{border-color:var(--blue-mid);box-shadow:0 0 0 2px rgba(26,110,181,.12)}
+.h-input.filled{background:var(--blue-light);border-color:#c5d9ee}
+.presence-row.checked .h-input{background:var(--blue-light);border-color:#7ab3d8}
+@media(max-width:1024px){.h-input{font-size:16px}}
+
+#pw-screen{position:fixed;inset:0;background:#0e2d5c;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem}
+#pw-screen .pw-logo{width:80px;height:80px;background:rgba(255,255,255,.15);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2rem}
+#pw-screen h1{color:white;font-size:1.3rem;font-weight:700;text-align:center;margin:0}
+#pw-screen p{color:rgba(255,255,255,.65);font-size:.85rem;text-align:center;margin:0}
+#pw-input{width:100%;max-width:280px;padding:.85rem 1rem;border:2px solid rgba(255,255,255,.25);border-radius:12px;background:rgba(255,255,255,.1);color:white;font-size:1.1rem;text-align:center;font-weight:600;letter-spacing:.1em;outline:none;-webkit-appearance:none}
+#pw-input::placeholder{color:rgba(255,255,255,.35);letter-spacing:normal;font-weight:400}
+#pw-input:focus{border-color:rgba(255,255,255,.6)}
+#pw-btn{width:100%;max-width:280px;padding:.85rem;background:white;color:#0e2d5c;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;-webkit-appearance:none}
+#pw-btn:active{opacity:.85}
+#pw-error{color:#ff6b6b;font-size:.85rem;display:none;text-align:center}
+
+</style>
+</head>
+<body>
+
+<div id="pw-screen">
+  <div class="pw-logo">🚒</div>
+  <h1>Sapeurs-Pompiers<br>Plan-les-Ouates</h1>
+  <p>Accès réservé au personnel</p>
+  <input type="password" id="pw-input" placeholder="Mot de passe" autocomplete="current-password">
+  <button id="pw-btn" onclick="checkPw()">Accéder</button>
+  <span id="pw-error">Mot de passe incorrect</span>
+</div>
+
+<header>
+  <div class="logo-wrap">
+    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEBLAEsAAD/7QAsUGhvdG9zaG9wIDMuMAA4QklNA+0AAAAAABABLAAAAAEAAQEsAAAAAQAB/+EQ+kV4aWYAAE1NACoAAAAIAAQBOwACAAAAEAAACEqHaQAEAAAAAQAACFqcnQABAAAAIAAAENLqHAAHAAAIDAAAAD4AAAAAHOoAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYYXZpZXIgQ0hBUFBVSVMAAAWQAwACAAAAFAAAEKiQBAACAAAAFAAAELySkQACAAAAAzA5AACSkgACAAAAAzA5AADqHAAHAAAIDAAACJwAAAAAHOoAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyMDE4OjA3OjA1IDEwOjMzOjQwADIwMTg6MDc6MDUgMTA6MzM6NDAAAABYAGEAdgBpAGUAcgAgAEMASABBAFAAUABVAEkAUwAAAP/hCyJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvADw/eHBhY2tldCBiZWdpbj0n77u/JyBpZD0nVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkJz8+DQo8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIj48cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPjxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSJ1dWlkOmZhZjViZGQ1LWJhM2QtMTFkYS1hZDMxLWQzM2Q3NTE4MmYxYiIgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIi8+PHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9InV1aWQ6ZmFmNWJkZDUtYmEzZC0xMWRhLWFkMzEtZDMzZDc1MTgyZjFiIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iPjx4bXA6Q3JlYXRlRGF0ZT4yMDE4LTA3LTA1VDEwOjMzOjQwLjA4NjwveG1wOkNyZWF0ZURhdGU+PC9yZGY6RGVzY3JpcHRpb24+PHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9InV1aWQ6ZmFmNWJkZDUtYmEzZC0xMWRhLWFkMzEtZDMzZDc1MTgyZjFiIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iPjxkYzpjcmVhdG9yPjxyZGY6U2VxIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+PHJkZjpsaT5YYXZpZXIgQ0hBUFBVSVM8L3JkZjpsaT48L3JkZjpTZXE+DQoJCQk8L2RjOmNyZWF0b3I+PC9yZGY6RGVzY3JpcHRpb24+PC9yZGY6UkRGPjwveDp4bXBtZXRhPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg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" alt="Logo PLO">
+    <div class="org">Sapeurs-Pompiers<br><span>Plan-les-Ouates</span></div>
+  </div>
+
+</header>
+<div id="loader"><div class="spinner"></div><div id="loader-txt">Génération en cours…</div></div>
+<div class="container">
+
+<!-- 1 PAGER -->
+<div class="section">
+  <div class="section-header" onclick="toggleSec(this)">
+    <span class="num">1</span> PAGER <span class="chev">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="row t3">
+      <div><label>Critère 1</label>
+        <select id="critere1">
+          <option value=""> </option>
+          <option>Animaux</option><option>Déblaiement</option><option>Divers</option>
+          <option>Explosion</option><option>Fumée</option><option>Incendie</option>
+          <option>Inondation</option><option>Odeur</option><option>Prévention</option>
+          <option>Renfort</option><option>Technique</option>
+        </select>
+      </div>
+      <div><label>Critère 2</label>
+        <select id="critere2">
+          <option value=""> </option>
+          <option>Avertisseur</option><option>Bateau</option><option>Bâtiment</option>
+          <option>Brûlé</option><option>Destruction</option><option>Effondrement</option>
+          <option>Fermeture</option><option>Nature</option><option>Odeur</option>
+          <option>Parking</option><option>Récupération</option><option>Sauvetage</option>
+          <option>Véhicule</option><option>Voie publique</option>
+        </select>
+      </div>
+      <div><label>Critère 3</label>
+        <select id="critere3">
+          <option value=""> </option>
+          <option>Annexe</option><option>Appartement</option><option>Arbre</option>
+          <option>Arbre / Broussailles</option><option>Atelier</option><option>Atelier / Garage</option>
+          <option>Branche</option><option>Bureau</option><option>Canalisation / Conduite</option>
+          <option>Cave</option><option>Cent. TT</option><option>Centre informatique</option>
+          <option>Champs</option><option>Chantier / Silo / Fosse</option><option>Chaufferie</option>
+          <option>Cheminée</option><option>Cirque / Manifestation</option>
+          <option>Clinique / Home / Hôpital</option><option>Combles</option><option>Communs</option>
+          <option>Complexe sportif</option><option>Container / Poubelle / Détritus</option>
+          <option>Détritus</option><option>Echafaudage</option><option>Ecole</option>
+          <option>Eglise</option><option>Entrepôt</option><option>Façade</option>
+          <option>Ferme</option><option>Fissure</option><option>Forêts</option>
+          <option>Gare</option><option>Gaz</option><option>Habitation</option>
+          <option>Hôtel</option><option>Hydrante</option><option>Industrie / Labo</option>
+          <option>Insecte</option><option>Installation électrique</option><option>Large Quai</option>
+          <option>Ligne aérienne</option><option>Magasin</option><option>Matériaux</option>
+          <option>Matériaux / Petit</option><option>Matériaux / Grand</option><option>Musée</option>
+          <option>Parking</option><option>Poteau / Pylone</option><option>Restaurant</option>
+          <option>Salle de spectacle</option><option>Terrain</option><option>Toit</option>
+          <option>Toit / Cheminée</option><option>Ventilation</option><option>Villa</option>
+          <option>Voie publique</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Rue / Chemin</label>
+        <div class="addr-wrap">
+          <input type="text" id="adresse-search" placeholder="Filtrer ou saisir librement…"
+            autocomplete="off"
+            oninput="filtrerRues(this.value)"
+            onfocus="ouvrirListe()"
+            onblur="fermerListe()">
+          <div id="adresse-liste" class="addr-drop"></div>
+        </div>
+      </div>
+      <div><label>Numéro</label><input type="text" id="adresse-numero" placeholder="Ex : 12A"></div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Date de l’intervention</label>
+        <input type="date" id="date-intervention" oninput="syncDuDate(this.value)">
+      </div>
+      <div>
+        <label>Heure de réception de l’alarme</label>
+        <div class="heure-row">
+          <select id="alarme-h" oninput="syncDuH(this.value)">
+            <option value="">HH</option>
+            <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option>
+          </select>
+          <span class="heure-sep">:</span>
+          <select id="alarme-m" oninput="syncDuM(this.value)">
+            <option value="">MM</option>
+            <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option><option>24</option><option>25</option><option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option><option>32</option><option>33</option><option>34</option><option>35</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option><option>46</option><option>47</option><option>48</option><option>49</option><option>50</option><option>51</option><option>52</option><option>53</option><option>54</option><option>55</option><option>56</option><option>57</option><option>58</option><option>59</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div>
+      <label>Mode d’intervention</label>
+      <div class="radio-row">
+        <label class="radio-item"><input type="radio" name="mode" value="MIXTE" checked><span>MIXTE</span></label>
+        <label class="radio-item"><input type="radio" name="mode" value="SPV SEUL"><span>SPV SEUL</span></label>
+        <label class="radio-item"><input type="radio" name="mode" value="SIS SEUL"><span>SIS SEUL</span></label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2 EFFECTIF -->
+<div class="section">
+  <div class="section-header" onclick="toggleSec(this)">
+    <span class="num">2</span> Effectif engagé <span class="chev">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="row t3">
+      <div><label>OF</label><input type="number" id="of" min="0" placeholder="0"></div>
+      <div><label>SOF</label><input type="number" id="sof" min="0" placeholder="0"></div>
+      <div><label>SAP</label><input type="number" id="sap" min="0" placeholder="0"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3 DUREE -->
+<div class="section">
+  <div class="section-header" onclick="toggleSec(this)">
+    <span class="num">3</span> Durée de l’intervention <span class="chev">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="row">
+      <div>
+        <label>Début — Date</label>
+        <input type="date" id="du-date" class="auto-sync">
+      </div>
+      <div>
+        <label>Début — Heure</label>
+        <div class="heure-row">
+          <select id="du-h" class="auto-sync">
+            <option value="">HH</option>
+            <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option>
+          </select>
+          <span class="heure-sep">:</span>
+          <select id="du-m" class="auto-sync">
+            <option value="">MM</option>
+            <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option><option>24</option><option>25</option><option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option><option>32</option><option>33</option><option>34</option><option>35</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option><option>46</option><option>47</option><option>48</option><option>49</option><option>50</option><option>51</option><option>52</option><option>53</option><option>54</option><option>55</option><option>56</option><option>57</option><option>58</option><option>59</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Fin — Date</label><input type="date" id="au-date" oninput="calcDuree()"></div>
+      <div>
+        <label>Fin — Heure</label>
+        <div class="heure-row">
+          <select id="au-h" onchange="calcDuree()">
+            <option value="">HH</option>
+            <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option>
+          </select>
+          <span class="heure-sep">:</span>
+          <select id="au-m" onchange="calcDuree()">
+            <option value="">MM</option>
+            <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option><option>24</option><option>25</option><option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option><option>32</option><option>33</option><option>34</option><option>35</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>41</option><option>42</option><option>43</option><option>44</option><option>45</option><option>46</option><option>47</option><option>48</option><option>49</option><option>50</option><option>51</option><option>52</option><option>53</option><option>54</option><option>55</option><option>56</option><option>57</option><option>58</option><option>59</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:.25rem">
+      <div style="display:flex;align-items:center;justify-content:center;gap:.75rem;background:var(--blue-light);border:1.5px solid #c5d9ee;border-radius:8px;padding:.6rem .9rem">
+        <span style="font-size:.72rem;font-weight:700;color:var(--gray-text);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Durée totale</span>
+        <input type="text" id="duree-totale" placeholder="—" style="width:120px;border:none;background:transparent;font-size:1rem;font-weight:700;color:var(--blue);text-align:center;min-height:auto;padding:.1rem .25rem;outline:none" title="Calculé automatiquement, modifiable">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4 ACTIVITE -->
+<div class="section">
+  <div class="section-header" onclick="toggleSec(this)">
+    <span class="num">4</span> Activité &amp; Observations <span class="chev">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="row t1">
+      <div>
+        <label>Activité du groupe d’intervention</label>
+        <textarea id="activite" rows="3">Pas d'engagement (Quittance CETA uniquement)</textarea>
+      </div>
+    </div>
+    <div class="row t1">
+      <div>
+        <label>Observations</label>
+        <textarea id="observations" rows="3" placeholder="Observations complémentaires…"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5 CHEF -->
+<div class="section">
+  <div class="section-header" onclick="toggleSec(this)">
+    <span class="num">5</span> Chef d’intervention <span class="chev">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="row t1">
+      <div>
+        <label>Grade, nom, prénom</label>
+        <select id="chef">
+          <option value="">— Sélectionner —</option>
+          <option value="Cap Panchaud Michaël" data-email="m.panchaud@plan-les-ouates.ch">Cap Panchaud Michaël</option>
+          <option value="Plt Chal Laurent" data-email="l.chal@plan-les-ouates.ch">Plt Chal Laurent</option>
+          <option value="Lt Chappuis Jérôme" data-email="j.chappuis@plan-les-ouates.ch">Lt Chappuis Jérôme</option>
+          <option value="Lt Ferrero Alain" data-email="a.ferrero@plan-les-ouates.ch">Lt Ferrero Alain</option>
+          <option value="Sgt Carmona Henri" data-email="h.carmona@plan-les-ouates.ch">Sgt Carmona Henri</option>
+          <option value="Sgt Seiler Matthieu" data-email="m.seiler@plan-les-ouates.ch">Sgt Seiler Matthieu</option>
+          <option value="Sgt M Realmonte Claude" data-email="c.realmonte@plan-les-ouates.ch">Sgt M Realmonte Claude</option>
+          <option value="Sgt Genecand Marc" data-email="m.genecand@plan-les-ouates.ch">Sgt Genecand Marc</option>
+          <option value="Cpl Tambasco Adrien" data-email="a.tambasco@plan-les-ouates.ch">Cpl Tambasco Adrien</option>
+        </select>
+      </div>
+    </div>
+    <p style="font-size:.75rem;color:var(--gray-text);margin-top:.25rem">Ce rapport est à l’usage exclusif du service.</p>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.85rem">
+      <button class="btn-action btn-pdf" style="flex:1;min-width:140px" onclick="doGen(false)">&#x1F4C4;&nbsp;PDF</button>
+      <button class="btn-action btn-mail" style="flex:1;min-width:140px" onclick="doGen(true)">&#x2709;&#xFE0F;&nbsp;Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6 LISTE DE PRESENCE -->
+<div class="section">
+  <div class="section-header" onclick="toggleSec(this)">
+    <span class="num">6</span> Liste de présence <span class="chev">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="presence-info">
+      <div><span class="pi-label">Intervention</span><span class="pi-val" id="pi-intervention">—</span></div>
+      <div><span class="pi-label">Lieu</span><span class="pi-val" id="pi-lieu">—</span></div>
+      <div><span class="pi-label">CI</span><span class="pi-val" id="pi-ci">—</span></div>
+      <div><span class="pi-label">Date</span><span class="pi-val" id="pi-date">—</span></div>
+    </div>
+    <div class="presence-cols">
+      <div class="presence-col">
+        <div class="presence-thead"><span></span><span class="th-nom">Membre</span><span class="th-h">Nbr. h</span></div>
+        <div class="presence-row" id="row-panchaud">
+          <label class="p-check"><input type="checkbox" id="ck-panchaud" onchange="onCheck('panchaud')"><span class="box"></span></label>
+          <span class="p-nom">Cap PANCHAUD Michaël</span>
+          <input type="text" class="h-input" id="h-panchaud" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-chal-l">
+          <label class="p-check"><input type="checkbox" id="ck-chal-l" onchange="onCheck('chal-l')"><span class="box"></span></label>
+          <span class="p-nom">Plt CHAL Laurent</span>
+          <input type="text" class="h-input" id="h-chal-l" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-chappuis-j">
+          <label class="p-check"><input type="checkbox" id="ck-chappuis-j" onchange="onCheck('chappuis-j')"><span class="box"></span></label>
+          <span class="p-nom">Lt CHAPPUIS Jérôme</span>
+          <input type="text" class="h-input" id="h-chappuis-j" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-ferrero">
+          <label class="p-check"><input type="checkbox" id="ck-ferrero" onchange="onCheck('ferrero')"><span class="box"></span></label>
+          <span class="p-nom">Lt FERRERO Alain</span>
+          <input type="text" class="h-input" id="h-ferrero" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-estruch">
+          <label class="p-check"><input type="checkbox" id="ck-estruch" onchange="onCheck('estruch')"><span class="box"></span></label>
+          <span class="p-nom">Four ESTRUCH Irène</span>
+          <input type="text" class="h-input" id="h-estruch" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-carmona">
+          <label class="p-check"><input type="checkbox" id="ck-carmona" onchange="onCheck('carmona')"><span class="box"></span></label>
+          <span class="p-nom">Sgt CARMONA Henri</span>
+          <input type="text" class="h-input" id="h-carmona" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-genecand">
+          <label class="p-check"><input type="checkbox" id="ck-genecand" onchange="onCheck('genecand')"><span class="box"></span></label>
+          <span class="p-nom">Sgt GENECAND Marc</span>
+          <input type="text" class="h-input" id="h-genecand" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-seiler">
+          <label class="p-check"><input type="checkbox" id="ck-seiler" onchange="onCheck('seiler')"><span class="box"></span></label>
+          <span class="p-nom">Sgt SEILER Matthieu</span>
+          <input type="text" class="h-input" id="h-seiler" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-jaquet">
+          <label class="p-check"><input type="checkbox" id="ck-jaquet" onchange="onCheck('jaquet')"><span class="box"></span></label>
+          <span class="p-nom">Cpl JAQUET Micaël</span>
+          <input type="text" class="h-input" id="h-jaquet" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-jung-o">
+          <label class="p-check"><input type="checkbox" id="ck-jung-o" onchange="onCheck('jung-o')"><span class="box"></span></label>
+          <span class="p-nom">Cpl JUNG Olivier</span>
+          <input type="text" class="h-input" id="h-jung-o" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-jung-s">
+          <label class="p-check"><input type="checkbox" id="ck-jung-s" onchange="onCheck('jung-s')"><span class="box"></span></label>
+          <span class="p-nom">Cpl JUNG Samuel</span>
+          <input type="text" class="h-input" id="h-jung-s" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-perrenoud">
+          <label class="p-check"><input type="checkbox" id="ck-perrenoud" onchange="onCheck('perrenoud')"><span class="box"></span></label>
+          <span class="p-nom">Cpl PERRENOUD Olivier</span>
+          <input type="text" class="h-input" id="h-perrenoud" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-realmonte">
+          <label class="p-check"><input type="checkbox" id="ck-realmonte" onchange="onCheck('realmonte')"><span class="box"></span></label>
+          <span class="p-nom">Cpl REALMONTE Claude</span>
+          <input type="text" class="h-input" id="h-realmonte" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-rouvinet">
+          <label class="p-check"><input type="checkbox" id="ck-rouvinet" onchange="onCheck('rouvinet')"><span class="box"></span></label>
+          <span class="p-nom">Cpl ROUVINET Guillaume</span>
+          <input type="text" class="h-input" id="h-rouvinet" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-savoy">
+          <label class="p-check"><input type="checkbox" id="ck-savoy" onchange="onCheck('savoy')"><span class="box"></span></label>
+          <span class="p-nom">Cpl SAVOY Charles</span>
+          <input type="text" class="h-input" id="h-savoy" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-tambasco">
+          <label class="p-check"><input type="checkbox" id="ck-tambasco" onchange="onCheck('tambasco')"><span class="box"></span></label>
+          <span class="p-nom">Cpl TAMBASCO Adrien</span>
+          <input type="text" class="h-input" id="h-tambasco" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-wicht">
+          <label class="p-check"><input type="checkbox" id="ck-wicht" onchange="onCheck('wicht')"><span class="box"></span></label>
+          <span class="p-nom">Cpl WICHT Nicolas</span>
+          <input type="text" class="h-input" id="h-wicht" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-chal-g">
+          <label class="p-check"><input type="checkbox" id="ck-chal-g" onchange="onCheck('chal-g')"><span class="box"></span></label>
+          <span class="p-nom">App CHAL Gilles</span>
+          <input type="text" class="h-input" id="h-chal-g" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-dikamona">
+          <label class="p-check"><input type="checkbox" id="ck-dikamona" onchange="onCheck('dikamona')"><span class="box"></span></label>
+          <span class="p-nom">App DIKAMONA Stanislas</span>
+          <input type="text" class="h-input" id="h-dikamona" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-nossek">
+          <label class="p-check"><input type="checkbox" id="ck-nossek" onchange="onCheck('nossek')"><span class="box"></span></label>
+          <span class="p-nom">App NOSSEK Nicolas</span>
+          <input type="text" class="h-input" id="h-nossek" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-odier">
+          <label class="p-check"><input type="checkbox" id="ck-odier" onchange="onCheck('odier')"><span class="box"></span></label>
+          <span class="p-nom">App ODIER Nicolas</span>
+          <input type="text" class="h-input" id="h-odier" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-benabdallah">
+          <label class="p-check"><input type="checkbox" id="ck-benabdallah" onchange="onCheck('benabdallah')"><span class="box"></span></label>
+          <span class="p-nom">Sap BEN ABDALLAH Ahmed</span>
+          <input type="text" class="h-input" id="h-benabdallah" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-buffelli">
+          <label class="p-check"><input type="checkbox" id="ck-buffelli" onchange="onCheck('buffelli')"><span class="box"></span></label>
+          <span class="p-nom">Sap BUFFELLI Enea</span>
+          <input type="text" class="h-input" id="h-buffelli" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-carton">
+          <label class="p-check"><input type="checkbox" id="ck-carton" onchange="onCheck('carton')"><span class="box"></span></label>
+          <span class="p-nom">Sap CARTON Lauryn</span>
+          <input type="text" class="h-input" id="h-carton" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-chal-a">
+          <label class="p-check"><input type="checkbox" id="ck-chal-a" onchange="onCheck('chal-a')"><span class="box"></span></label>
+          <span class="p-nom">Sap CHAL Arnaud</span>
+          <input type="text" class="h-input" id="h-chal-a" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-chappuis-b">
+          <label class="p-check"><input type="checkbox" id="ck-chappuis-b" onchange="onCheck('chappuis-b')"><span class="box"></span></label>
+          <span class="p-nom">Sap CHAPPUIS Bastien</span>
+          <input type="text" class="h-input" id="h-chappuis-b" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-cipriano">
+          <label class="p-check"><input type="checkbox" id="ck-cipriano" onchange="onCheck('cipriano')"><span class="box"></span></label>
+          <span class="p-nom">Sap CIPRIANO Léa</span>
+          <input type="text" class="h-input" id="h-cipriano" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-dacosta">
+          <label class="p-check"><input type="checkbox" id="ck-dacosta" onchange="onCheck('dacosta')"><span class="box"></span></label>
+          <span class="p-nom">Sap DA COSTA Marco</span>
+          <input type="text" class="h-input" id="h-dacosta" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-eursels">
+          <label class="p-check"><input type="checkbox" id="ck-eursels" onchange="onCheck('eursels')"><span class="box"></span></label>
+          <span class="p-nom">Sap EURSELS Eliot</span>
+          <input type="text" class="h-input" id="h-eursels" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-fasel-b">
+          <label class="p-check"><input type="checkbox" id="ck-fasel-b" onchange="onCheck('fasel-b')"><span class="box"></span></label>
+          <span class="p-nom">Sap FASEL Bryan</span>
+          <input type="text" class="h-input" id="h-fasel-b" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-fernandez">
+          <label class="p-check"><input type="checkbox" id="ck-fernandez" onchange="onCheck('fernandez')"><span class="box"></span></label>
+          <span class="p-nom">Sap FERNANDEZ Danys</span>
+          <input type="text" class="h-input" id="h-fernandez" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-fracheboud">
+          <label class="p-check"><input type="checkbox" id="ck-fracheboud" onchange="onCheck('fracheboud')"><span class="box"></span></label>
+          <span class="p-nom">Sap FRACHEBOUD Julien</span>
+          <input type="text" class="h-input" id="h-fracheboud" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-giuntini">
+          <label class="p-check"><input type="checkbox" id="ck-giuntini" onchange="onCheck('giuntini')"><span class="box"></span></label>
+          <span class="p-nom">Sap GIUNTINI Grégory</span>
+          <input type="text" class="h-input" id="h-giuntini" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-hauswirth">
+          <label class="p-check"><input type="checkbox" id="ck-hauswirth" onchange="onCheck('hauswirth')"><span class="box"></span></label>
+          <span class="p-nom">Sap HAUSWIRTH Soline</span>
+          <input type="text" class="h-input" id="h-hauswirth" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-heribi">
+          <label class="p-check"><input type="checkbox" id="ck-heribi" onchange="onCheck('heribi')"><span class="box"></span></label>
+          <span class="p-nom">Sap HERIBI Ouassim</span>
+          <input type="text" class="h-input" id="h-heribi" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-keller">
+          <label class="p-check"><input type="checkbox" id="ck-keller" onchange="onCheck('keller')"><span class="box"></span></label>
+          <span class="p-nom">Sap KELLER Maxime</span>
+          <input type="text" class="h-input" id="h-keller" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-koelle">
+          <label class="p-check"><input type="checkbox" id="ck-koelle" onchange="onCheck('koelle')"><span class="box"></span></label>
+          <span class="p-nom">Sap KOELLE Rachel</span>
+          <input type="text" class="h-input" id="h-koelle" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-kueviakoe">
+          <label class="p-check"><input type="checkbox" id="ck-kueviakoe" onchange="onCheck('kueviakoe')"><span class="box"></span></label>
+          <span class="p-nom">Sap KUEVIAKOE Messan</span>
+          <input type="text" class="h-input" id="h-kueviakoe" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-laperrouza">
+          <label class="p-check"><input type="checkbox" id="ck-laperrouza" onchange="onCheck('laperrouza')"><span class="box"></span></label>
+          <span class="p-nom">Sap LAPERROUZA Oren</span>
+          <input type="text" class="h-input" id="h-laperrouza" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-marioni">
+          <label class="p-check"><input type="checkbox" id="ck-marioni" onchange="onCheck('marioni')"><span class="box"></span></label>
+          <span class="p-nom">Sap MARIONI Théo</span>
+          <input type="text" class="h-input" id="h-marioni" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-meili">
+          <label class="p-check"><input type="checkbox" id="ck-meili" onchange="onCheck('meili')"><span class="box"></span></label>
+          <span class="p-nom">Sap MEILI Guillaume</span>
+          <input type="text" class="h-input" id="h-meili" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-monbaron">
+          <label class="p-check"><input type="checkbox" id="ck-monbaron" onchange="onCheck('monbaron')"><span class="box"></span></label>
+          <span class="p-nom">Sap MONBARON Stéphane</span>
+          <input type="text" class="h-input" id="h-monbaron" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-niang">
+          <label class="p-check"><input type="checkbox" id="ck-niang" onchange="onCheck('niang')"><span class="box"></span></label>
+          <span class="p-nom">Sap NIANG Pape</span>
+          <input type="text" class="h-input" id="h-niang" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-rafrafi">
+          <label class="p-check"><input type="checkbox" id="ck-rafrafi" onchange="onCheck('rafrafi')"><span class="box"></span></label>
+          <span class="p-nom">Sap RAFRAFI Béchir</span>
+          <input type="text" class="h-input" id="h-rafrafi" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-roduit">
+          <label class="p-check"><input type="checkbox" id="ck-roduit" onchange="onCheck('roduit')"><span class="box"></span></label>
+          <span class="p-nom">Sap RODUIT Matthieu</span>
+          <input type="text" class="h-input" id="h-roduit" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-schumacher">
+          <label class="p-check"><input type="checkbox" id="ck-schumacher" onchange="onCheck('schumacher')"><span class="box"></span></label>
+          <span class="p-nom">Sap SCHUMACHER Michaël</span>
+          <input type="text" class="h-input" id="h-schumacher" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+        <div class="presence-row" id="row-sivapatham">
+          <label class="p-check"><input type="checkbox" id="ck-sivapatham" onchange="onCheck('sivapatham')"><span class="box"></span></label>
+          <span class="p-nom">Sap SIVAPATHAM Thananjayan</span>
+          <input type="text" class="h-input" id="h-sivapatham" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('filled',this.value.trim()!=='')">
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:1rem">
+      <label>Personnel surnuméraire / remarques</label>
+      <textarea id="non-presents" rows="3" placeholder="Personnel surnuméraire, remarques…"></textarea>
+    </div>
+    <div style="margin-top:1rem;display:flex;gap:.6rem;flex-wrap:wrap">
+      <button class="btn-action btn-pdf" style="flex:1;min-width:140px" onclick="genPresencePDF(false)">&#x1F4C4;&nbsp;PDF présence</button>
+      <button class="btn-action btn-mail" style="flex:1;min-width:140px" onclick="genPresencePDF(true)">&#x2709;&#xFE0F;&nbsp;Envoyer présence</button>
+    </div>
+  </div>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+<script>
+
+(function() {
+  var PW_HASH = "7c7a65d1"; // placeholder, replaced below
+  function hashStr(s) {
+    // Simple djb2 hash — not cryptographic but sufficient for this use
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) {
+      h = ((h << 5) + h) + s.charCodeAt(i);
+      h = h & 0xffffffff;
+    }
+    return (h >>> 0).toString(16);
+  }
+  var STORED_HASH = sessionStorage.getItem("sp_plo_auth");
+  if (STORED_HASH && STORED_HASH === PW_HASH) {
+    document.getElementById("pw-screen").style.display = "none";
+  }
+  window.checkPw = function() {
+    var val = document.getElementById("pw-input").value;
+    var h = hashStr(val);
+    if (h === PW_HASH) {
+      sessionStorage.setItem("sp_plo_auth", h);
+      document.getElementById("pw-screen").style.display = "none";
+    } else {
+      document.getElementById("pw-error").style.display = "block";
+      document.getElementById("pw-input").value = "";
+      document.getElementById("pw-input").focus();
+    }
+  };
+  document.addEventListener("DOMContentLoaded", function() {
+    var inp = document.getElementById("pw-input");
+    if (inp) {
+      inp.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") checkPw();
+      });
+      // Auto-focus
+      setTimeout(function() { inp.focus(); }, 100);
+    }
+  });
+})();
+
+
+
+var LOGO_B64 = "/9j/4AAQSkZJRgABAQEBLAEsAAD/7QAsUGhvdG9zaG9wIDMuMAA4QklNA+0AAAAAABABLAAAAAEAAQEsAAAAAQAB/+EQ+kV4aWYAAE1NACoAAAAIAAQBOwACAAAAEAAACEqHaQAEAAAAAQAACFqcnQABAAAAIAAAENLqHAAHAAAIDAAAAD4AAAAAHOoAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYYXZpZXIgQ0hBUFBVSVMAAAWQAwACAAAAFAAAEKiQBAACAAAAFAAAELySkQACAAAAAzA5AACSkgACAAAAAzA5AADqHAAHAAAIDAAACJwAAAAAHOoAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyMDE4OjA3OjA1IDEwOjMzOjQwADIwMTg6MDc6MDUgMTA6MzM6NDAAAABYAGEAdgBpAGUAcgAgAEMASABBAFAAUABVAEkAUwAAAP/hCyJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvADw/eHBhY2tldCBiZWdpbj0n77u/JyBpZD0nVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkJz8+DQo8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIj48cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPjxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSJ1dWlkOmZhZjViZGQ1LWJhM2QtMTFkYS1hZDMxLWQzM2Q3NTE4MmYxYiIgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIi8+PHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9InV1aWQ6ZmFmNWJkZDUtYmEzZC0xMWRhLWFkMzEtZDMzZDc1MTgyZjFiIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iPjx4bXA6Q3JlYXRlRGF0ZT4yMDE4LTA3LTA1VDEwOjMzOjQwLjA4NjwveG1wOkNyZWF0ZURhdGU+PC9yZGY6RGVzY3JpcHRpb24+PHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9InV1aWQ6ZmFmNWJkZDUtYmEzZC0xMWRhLWFkMzEtZDMzZDc1MTgyZjFiIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iPjxkYzpjcmVhdG9yPjxyZGY6U2VxIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+PHJkZjpsaT5YYXZpZXIgQ0hBUFBVSVM8L3JkZjpsaT48L3JkZjpTZXE+DQoJCQk8L2RjOmNyZWF0b3I+PC9yZGY6RGVzY3JpcHRpb24+PC9yZGY6UkRGPjwveDp4bXBtZXRhPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg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";
+
+var RUES = ["All\u00e9e du Vieil Orme","Avenue du Mill\u00e9naire","Avenue Rossini","Chemin Charles-Baudouin","Chemin d'Alcire","Chemin d'Humilly","Chemin Dami","Chemin de Champ-Joly","Chemin de l'Ab\u00e9rieu","Chemin de l'Aulne","Chemin de l'Essartage","Chemin de la Bergeronnette","Chemin de la Bistoquette","Chemin de la Butte","Chemin de la Cartouichi\u00e8re","Chemin de la Ch\u00e2ti\u00e8re","Chemin de la Chenallaz","Chemin de la Commanderie","Chemin de la Fauconnerie","Chemin de la M\u00e8re-Voie","Chemin de la Milice","Chemin de la Plamatte","Chemin de la Planche-d'Aire","Chemin de la Redoute","Chemin de la Vironde","Chemin de Maronsy","Chemin de Plein-Vent","Chemin de Pomone","Chemin de Riant-Mont","Chemin de Trapas-Loup","Chemin de Tr\u00e8fle-Blanc","Chemin de Verbant","Chemin de Vers","Chemin des Aulx","Chemin des Bellins","Chemin des Bougeries","Chemin des Brulaz","Chemin des Champs-Gottreux","Chemin des Chapons","Chemin des Cherpines","Chemin des Contamines","Chemin des Criblettes","Chemin des Croizonniers","Chemin des Fraisiers","Chemin des Goulettes","Chemin des Longues-Rasses","Chemin des Perdrix","Chemin des Petites-Fontaines","Chemin des Petits-Bois","Chemin des Picatalons","Chemin des Pluviers","Chemin des Ravonnets","Chemin des Roulets","Chemin des Sciers","Chemin des Serves","Chemin des Vaulx","Chemin des Voirets","Chemin des Vuattes","Chemin du Bois-Ecard","Chemin du Bois-Malet","Chemin du Champ-Bollet","Chemin du Champ-Cordier","Chemin du Champ-des-Filles","Chemin du Champ-des-Noyers","Chemin du Clos","Chemin du Daru","Chemin du Grand-Voiret","Chemin du Nant-Boret","Chemin du Pont-du-Centenaire","Chemin du Pr\u00e9-Fleuri","Chemin du Pr\u00e9-de-l'Oeuf","Chemin du Pr\u00e9-de-la-Raisse","Chemin du Pr\u00e9-du-Camp","Chemin du Sapey","Chemin du Tourbillon","Chemin du Vieux-Puits","Chemin Eug\u00e8ne-Charlet","Chemin Joseph-Fontaine","Chemin Le-Sapay","Chemin Longe-l'Aire","Chemin Marc Charrot","Chemin Massenet","Chemin Vachoux","Chemin Vandel","Esplanade","La Promenade","Mail 2000","Place des Aviateurs","Place des Bourneaux","Place du Vieil Orme","Pont des Vaulx","Route de Bardonnex","Route de Base","Route de la Chapelle","Route de la Galaise","Route de Saconnex-d'Arve","Route de Saint-Julien","Route des Chevaliers-de-Malte","Route du Camp","Route du V\u00e9lodrome","Rue du Champ-Blanchod","Ruelle de l'Ancienne Poste","Ruelle du Contingent","Ruelle du Hornus","Ruelle du P'tit-Gris","Sentier de l'\u00c9tang du Paradis","Sentier de la Bataille","Sentier des Etangs de la Bistoquette","Sentier du Pr\u00e9-Jardinier","Sentier sous la Tour","Square de l'Arc-en-ciel","Square des Footballeurs","Tr\u00e8fle blanc","Tunnel des Communes-R\u00e9unies"];
+
+var DEST_TOUS = ["f.monbaron@plan-les-ouates.ch","police-municipale@plan-les-ouates.ch","sapeurs.pompiers@plan-les-ouates.ch","h.carmona@plan-les-ouates.ch","m.seiler@plan-les-ouates.ch","a.tambasco@plan-les-ouates.ch","m.panchaud@plan-les-ouates.ch","l.chal@plan-les-ouates.ch","a.ferrero@plan-les-ouates.ch","j.chappuis@plan-les-ouates.ch","i.estruch@plan-les-ouates.ch","c.realmonte@plan-les-ouates.ch","m.genecand@plan-les-ouates.ch","p.zosso@plan-les-ouates.ch"];
+var DEST_BASE = ["sapeurs.pompiers@plan-les-ouates.ch"];
+
+function toggleSec(hdr) {
+  hdr.classList.toggle("coll");
+  hdr.nextElementSibling.classList.toggle("coll");
+}
+
+var addrHi = -1;
+
+function norm(s) {
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function filtrerRues(v) {
+  var liste = document.getElementById("adresse-liste");
+  var q = norm(v.trim());
+  if (!q) { liste.style.display = "none"; return; }
+  var r = RUES.filter(function(x) { return norm(x).indexOf(q) >= 0; });
+  if (!r.length) { liste.style.display = "none"; return; }
+  addrHi = -1;
+  liste.innerHTML = r.map(function(x, i) {
+    var safe = x.replace(/"/g, "&quot;");
+    return '<div data-val="' + safe + '">' + x + "</div>";
+  }).join("");
+  liste.querySelectorAll("div").forEach(function(div) {
+    div.addEventListener("mousedown", function(e) {
+      e.preventDefault();
+      pickRue(this.getAttribute("data-val"));
+    });
+  });
+  liste.style.display = "block";
+}
+
+function pickRue(r) {
+  document.getElementById("adresse-search").value = r;
+  document.getElementById("adresse-liste").style.display = "none";
+  document.getElementById("adresse-numero").focus();
+}
+
+function ouvrirListe() {
+  var v = document.getElementById("adresse-search").value;
+  if (v.trim()) filtrerRues(v);
+}
+
+function fermerListe() {
+  setTimeout(function() {
+    document.getElementById("adresse-liste").style.display = "none";
+  }, 150);
+}
+
+function syncDuDate(v) {
+  var e = document.getElementById("du-date");
+  if (!e.dataset.modified) e.value = v;
+}
+function syncDuH(v) {
+  var e = document.getElementById("du-h");
+  if (!e.dataset.modified) {
+    // Pour un select, on cherche l'option correspondante
+    var padded = (v||"").toString().padStart(2,"0");
+    for (var i=0;i<e.options.length;i++){
+      if(e.options[i].value===padded||e.options[i].text===padded){e.selectedIndex=i;break;}
+    }
+  }
+}
+function syncDuM(v) {
+  var e = document.getElementById("du-m");
+  if (!e.dataset.modified) {
+    var padded = (v||"").toString().padStart(2,"0");
+    for (var i=0;i<e.options.length;i++){
+      if(e.options[i].value===padded||e.options[i].text===padded){e.selectedIndex=i;break;}
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  // Sync presence info when report fields change
+  ["critere1","critere2","critere3","adresse-search","adresse-numero","chef","date-intervention"].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){el.addEventListener("input",syncPresenceInfo);el.addEventListener("change",syncPresenceInfo);}
+  });
+  syncPresenceInfo();
+
+  // Duree-totale: mark manual if user edits
+  var dtEl = document.getElementById("duree-totale");
+  if(dtEl){
+    dtEl.addEventListener("input",function(){this.dataset.manual=this.value?"1":"0";});
+    dtEl.addEventListener("change",function(){if(!this.value.trim())this.dataset.manual="0";});
+  }
+
+  // Hook du-date/h/m for calcDuree
+  ["du-date","du-h","du-m"].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){
+      el.addEventListener("change",function(){this.dataset.modified="1";calcDuree();});
+      el.addEventListener("input",function(){this.dataset.modified="1";calcDuree();});
+    }
+  });
+
+  // Touchstart to close address dropdown on iPad
+  document.addEventListener("touchstart",function(e){
+    var wrap=document.querySelector(".addr-wrap");
+    if(wrap&&!wrap.contains(e.target)){document.getElementById("adresse-liste").style.display="none";}
+  });
+
+  // Init h-input widths
+
+  // Auto-sync: marquer comme modifié si l'utilisateur touche manuellement
+  ["du-date","du-h","du-m"].forEach(function(id) {
+    document.getElementById(id).addEventListener("change", function() {
+      this.dataset.modified = "1";
+      this.classList.remove("auto-sync");
+    });
+    document.getElementById(id).addEventListener("input", function() {
+      this.dataset.modified = "1";
+      this.classList.remove("auto-sync");
+    });
+  });
+
+  // Fermer la liste d'adresses au tap en dehors (iPad)
+  document.addEventListener("touchstart", function(e) {
+    var wrap = document.querySelector(".addr-wrap");
+    if (wrap && !wrap.contains(e.target)) {
+      document.getElementById("adresse-liste").style.display = "none";
+    }
+  });
+
+  // Navigation clavier dans la liste d'adresses
+  document.getElementById("adresse-search").addEventListener("keydown", function(e) {
+    var liste = document.getElementById("adresse-liste");
+    var items = liste.querySelectorAll("div");
+    if (!items.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      addrHi = Math.min(addrHi + 1, items.length - 1);
+      items.forEach(function(x, i) { x.classList.toggle("hi", i === addrHi); });
+      items[addrHi].scrollIntoView({block:"nearest"});
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      addrHi = Math.max(addrHi - 1, 0);
+      items.forEach(function(x, i) { x.classList.toggle("hi", i === addrHi); });
+      items[addrHi].scrollIntoView({block:"nearest"});
+    } else if (e.key === "Enter" && addrHi >= 0) {
+      e.preventDefault();
+      pickRue(items[addrHi].getAttribute("data-val"));
+    } else if (e.key === "Escape") {
+      liste.style.display = "none";
+    }
+  });
+
+  // Date du jour par défaut
+  document.getElementById("date-intervention").value = new Date().toISOString().split("T")[0];
+});
+
+function gv(id) {
+  var el = document.getElementById(id);
+  return el ? (el.value || "") : "";
+}
+
+function fmtDate(v) {
+  if (!v) return "";
+  var d = new Date(v + "T00:00:00");
+  return d.toLocaleDateString("fr-CH");
+}
+
+function pad2(v) {
+  return (v || "0").toString().padStart(2, "0");
+}
+
+function getDest() {
+  var sel = document.getElementById("chef");
+  var opt = sel.options[sel.selectedIndex];
+  return (opt && opt.dataset.email) ? DEST_TOUS : DEST_BASE;
+}
+
+function buildPDF() {
+  var jsPDF = window.jspdf.jsPDF;
+  var doc = new jsPDF({orientation:"portrait", unit:"mm", format:"a4"});
+  var ML = 12, W = 210, CW = W - ML * 2;
+  var y = 10;
+  var cb = [14, 45, 92], cbl = [232, 242, 250], ct = [26, 29, 35], cg = [100, 116, 139];
+
+  // En-t\u00eate
+  doc.addImage("data:image/jpeg;base64," + LOGO_B64, "JPEG", ML, y, 16, 16);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(cb[0], cb[1], cb[2]);
+  doc.text("Sapeurs-Pompiers Plan-les-Ouates", ML + 19, y + 6);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(cg[0], cg[1], cg[2]);
+  doc.text("ch. du Pr\u00e9-Fleuri 5 \u2013 1228 Plan-les-Ouates \u2013 sapeurs.pompiers@plan-les-ouates.ch", ML + 19, y + 11);
+  y += 18;
+  doc.setDrawColor(cb[0], cb[1], cb[2]); doc.setLineWidth(0.5); doc.line(ML, y, ML + CW, y); y += 5;
+
+  // Titre
+  doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.setTextColor(cb[0], cb[1], cb[2]);
+  doc.text("Rapport d'intervention", ML, y + 5); y += 10;
+
+  // Valeurs
+  var c1 = gv("critere1"), c2 = gv("critere2"), c3 = gv("critere3");
+  var adr = gv("adresse-search").trim(), num = gv("adresse-numero").trim();
+  var adrFull = adr + (num ? " " + num : "");
+  var dateIntv = fmtDate(gv("date-intervention"));
+  var alH = pad2(gv("alarme-h")), alM = pad2(gv("alarme-m"));
+  var mode = (document.querySelector("input[name=mode]:checked") || {}).value || "";
+  var of_ = gv("of") || "0", sof = gv("sof") || "0", sap = gv("sap") || "0";
+  var duDate = fmtDate(gv("du-date")), duH = pad2(gv("du-h")), duM = pad2(gv("du-m"));
+  var auDate = fmtDate(gv("au-date")), auH = pad2(gv("au-h")), auM = pad2(gv("au-m"));
+  var activite = gv("activite"), obs = gv("observations"), chef = gv("chef");
+
+  function sec(title, h, fn) {
+    doc.setFillColor(cb[0], cb[1], cb[2]); doc.rect(ML, y, CW, 7, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(255, 255, 255);
+    doc.text(title, ML + 2, y + 5); y += 9;
+    doc.setDrawColor(cg[0], cg[1], cg[2]); doc.setLineWidth(0.2); doc.rect(ML, y, CW, h);
+    fn(y); y += h + 3;
+  }
+
+  function lbl(t, x, yy) {
+    doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(cg[0], cg[1], cg[2]);
+    doc.text(t, x, yy);
+  }
+  function val(t, x, yy, w) {
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(ct[0], ct[1], ct[2]);
+    doc.text(t || "", x, yy);
+    doc.setDrawColor(cg[0], cg[1], cg[2]); doc.setLineWidth(0.15); doc.line(x, yy + 0.5, x + w, yy + 0.5);
+  }
+
+  sec("PAGER", 46, function(yb) {
+    lbl("Crit\u00e8re 1", ML + 2, yb + 5); val(c1, ML + 2, yb + 10, 56);
+    lbl("Crit\u00e8re 2", ML + 68, yb + 5); val(c2, ML + 68, yb + 10, 56);
+    lbl("Crit\u00e8re 3", ML + 134, yb + 5); val(c3, ML + 134, yb + 10, 54);
+    lbl("Adresse", ML + 2, yb + 18); val(adrFull, ML + 2, yb + 23, CW - 4);
+    lbl("Date intervention", ML + 2, yb + 30); val(dateIntv, ML + 2, yb + 35, 38);
+    lbl("Heure alarme", ML + 52, yb + 30); val(alH + ":" + alM, ML + 52, yb + 35, 18);
+    lbl("Mode intervention", ML + 82, yb + 30); val(mode, ML + 82, yb + 35, 38);
+  });
+
+  sec("EFFECTIF ENGAG\u00c9", 14, function(yb) {
+    lbl("OF", ML + 2, yb + 5); val(of_, ML + 10, yb + 10, 24);
+    lbl("SOF", ML + 50, yb + 5); val(sof, ML + 60, yb + 10, 24);
+    lbl("SAP", ML + 100, yb + 5); val(sap, ML + 110, yb + 10, 24);
+  });
+
+  sec("DUR\u00c9E DE L'INTERVENTION", 14, function(yb) {
+    lbl("D\u00e9but date", ML + 2, yb + 5); val(duDate, ML + 22, yb + 10, 28);
+    lbl("\u00e0", ML + 54, yb + 5); val(duH + ":" + duM, ML + 58, yb + 10, 14);
+    lbl("Fin date", ML + 84, yb + 5); val(auDate, ML + 100, yb + 10, 28);
+    lbl("\u00e0", ML + 132, yb + 5); val(auH + ":" + auM, ML + 136, yb + 10, 14);
+  });
+
+  var actLines = doc.splitTextToSize(activite, CW - 4);
+  var obsLines = doc.splitTextToSize(obs, CW - 4);
+  var h4 = Math.max(28, actLines.length * 4.5 + obsLines.length * 4.5 + 18);
+  sec("ACTIVIT\u00c9 & OBSERVATIONS", h4, function(yb) {
+    lbl("Activit\u00e9 du groupe d'intervention", ML + 2, yb + 5);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(ct[0], ct[1], ct[2]);
+    doc.text(actLines, ML + 2, yb + 10);
+    var yo = yb + 10 + actLines.length * 4.5 + 4;
+    lbl("Observations", ML + 2, yo - 3);
+    doc.text(obsLines, ML + 2, yo);
+  });
+
+  sec("CHEF D'INTERVENTION", 12, function(yb) {
+    lbl("Grade, nom, pr\u00e9nom", ML + 2, yb + 5);
+    val(chef, ML + 40, yb + 10, CW - 44);
+  });
+
+  doc.setDrawColor(cb[0], cb[1], cb[2]); doc.setLineWidth(0.4); doc.line(ML, y, ML + CW, y); y += 5;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(cb[0], cb[1], cb[2]);
+  doc.text("Ce rapport est \u00e0 l'usage exclusif du service", ML, y);
+
+  return doc;
+}
+
+function doGen(sendMail) {
+  var loader = document.getElementById("loader");
+  var loaderTxt = document.getElementById("loader-txt");
+  loader.classList.add("on");
+  loaderTxt.textContent = sendMail ? "Pr\u00e9paration de l'envoi\u2026" : "G\u00e9n\u00e9ration du PDF\u2026";
+
+  // setTimeout pour laisser le DOM se mettre \u00e0 jour (iOS)
+  setTimeout(function() {
+    try {
+      var chef = gv("chef");
+      var adresse = gv("adresse-search").trim();
+      var date = gv("date-intervention");
+      var c1 = gv("critere1");
+      var manquants = [];
+      if (!c1) manquants.push("Crit\u00e8re 1");
+      if (!adresse) manquants.push("Adresse");
+      if (!date) manquants.push("Date d'intervention");
+      if (!chef) manquants.push("Chef d'intervention");
+      if (manquants.length) {
+        loader.classList.remove("on");
+        alert("Champs obligatoires :\n\u2022 " + manquants.join("\n\u2022 "));
+        return;
+      }
+
+      var doc = buildPDF();
+      var num = gv("adresse-numero").trim();
+      var adrFull = adresse + (num ? " " + num : "");
+      var dateF = fmtDate(date);
+      var filename = "rapport_intervention_" + date + ".pdf";
+
+      var c2 = gv("critere2"), c3 = gv("critere3");
+      var alH = pad2(gv("alarme-h")), alM = pad2(gv("alarme-m"));
+      var mode = (document.querySelector("input[name=mode]:checked") || {}).value || "";
+      var of_ = gv("of") || "0", sof = gv("sof") || "0", sap = gv("sap") || "0";
+      var duDate = fmtDate(gv("du-date")), duH = pad2(gv("du-h")), duM = pad2(gv("du-m"));
+      var auDate = fmtDate(gv("au-date")), auH = pad2(gv("au-h")), auM = pad2(gv("au-m"));
+      var activite = gv("activite"), obs = gv("observations");
+
+      var sujet = "Rapport d'intervention \u2013 " + (c1 ? c1 + " \u2013 " : "") + adrFull + " \u2013 " + dateF;
+      var corps = "Rapport d'intervention \u2013 Sapeurs-Pompiers Plan-les-Ouates\n"
+        + "==========================================================\n"
+        + "PAGER\n"
+        + "  Crit\u00e8re 1 : " + c1 + "\n"
+        + "  Crit\u00e8re 2 : " + c2 + "\n"
+        + "  Crit\u00e8re 3 : " + c3 + "\n"
+        + "  Adresse   : " + adrFull + "\n"
+        + "  Date      : " + dateF + "\n"
+        + "  Alarme    : " + alH + ":" + alM + "\n"
+        + "  Mode      : " + mode + "\n\n"
+        + "EFFECTIF ENGAG\u00c9\n"
+        + "  OF : " + of_ + "   SOF : " + sof + "   SAP : " + sap + "\n\n"
+        + "DUR\u00c9E DE L'INTERVENTION\n"
+        + "  D\u00e9but : " + duDate + " \u00e0 " + duH + ":" + duM
+        + "   Fin : " + auDate + " \u00e0 " + auH + ":" + auM + "\n\n"
+        + "ACTIVIT\u00c9\n  " + activite + "\n\n"
+        + "OBSERVATIONS\n  " + obs + "\n\n"
+        + "Chef d'intervention : " + chef + "\n\n"
+        + "--\nVeuillez joindre le PDF t\u00e9l\u00e9charg\u00e9 (" + filename + ").\n"
+        + "Ce rapport est \u00e0 l'usage exclusif du service.";
+
+      if (sendMail) {
+        var blob = doc.output("blob");
+        var pdfFile = new File([blob], filename, {type:"application/pdf"});
+        var dest = getDest();
+        var shareText = corps + "\n\nDestinataires : " + dest.join(", ");
+
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(a.href); }, 15000);
+        loader.classList.remove("on");
+        showToast("📎 PDF téléchargé – joignez-le à votre mail");
+        var dest = getDest();
+        var to = encodeURIComponent(dest.join(","));
+        var mailto = "mailto:" + to + "?subject=" + encodeURIComponent(sujet) + "&body=" + encodeURIComponent(corps);
+        setTimeout(function() { window.location.href = mailto; }, 1500);
+
+      } else {
+        // PDF seul
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)) {
+          var pdfFile2 = new File([doc.output("blob")], filename, {type:"application/pdf"});
+          if (navigator.canShare && navigator.canShare({files:[pdfFile2]})) {
+            navigator.share({files:[pdfFile2], title:filename}).catch(function(){});
+          } else {
+            window.open(URL.createObjectURL(doc.output("blob")), "_blank");
+          }
+          showToast("✅ PDF prêt");
+        } else {
+          doc.save(filename);
+          showToast("✅ Rapport PDF généré !");
+        }
+        loader.classList.remove("on");
+      }
+    } catch(err) {
+      loader.classList.remove("on");
+      showToast("\u274c Erreur\u00a0: " + err.message);
+      console.error(err);
+    }
+  }, 50);
+}
+
+
+
+// ===== CALCUL DURÉE =====
+function calcDuree() {
+  var duDate = document.getElementById("du-date").value;
+  var duH    = document.getElementById("du-h").value;
+  var duM    = document.getElementById("du-m").value;
+  var auDate = document.getElementById("au-date").value;
+  var auH    = document.getElementById("au-h").value;
+  var auM    = document.getElementById("au-m").value;
+  var field  = document.getElementById("duree-totale");
+  if (field.dataset.manual === "1") return;
+  if (!duDate || !duH || !duM || !auDate || !auH || !auM) { field.value = ""; return; }
+  var debut = new Date(duDate + "T" + duH + ":" + duM + ":00");
+  var fin   = new Date(auDate + "T" + auH + ":" + auM + ":00");
+  var diffMin = Math.round((fin - debut) / 60000);
+  if (isNaN(diffMin) || diffMin < 0) { field.value = ""; return; }
+  var h = Math.floor(diffMin / 60);
+  var m = diffMin % 60;
+  field.value = h + "h" + (m > 0 ? String(m).padStart(2,"0") : "");
+}
+
+// ===== LISTE DE PRÉSENCE =====
+var MEMBRES_PRESENCE = [{id:"panchaud",nom:"Cap PANCHAUD Michaël"},{id:"chal-l",nom:"Plt CHAL Laurent"},{id:"chappuis-j",nom:"Lt CHAPPUIS Jérôme"},{id:"ferrero",nom:"Lt FERRERO Alain"},{id:"estruch",nom:"Four ESTRUCH Irène"},{id:"carmona",nom:"Sgt CARMONA Henri"},{id:"genecand",nom:"Sgt GENECAND Marc"},{id:"seiler",nom:"Sgt SEILER Matthieu"},{id:"jaquet",nom:"Cpl JAQUET Micaël"},{id:"jung-o",nom:"Cpl JUNG Olivier"},{id:"jung-s",nom:"Cpl JUNG Samuel"},{id:"perrenoud",nom:"Cpl PERRENOUD Olivier"},{id:"realmonte",nom:"Cpl REALMONTE Claude"},{id:"rouvinet",nom:"Cpl ROUVINET Guillaume"},{id:"savoy",nom:"Cpl SAVOY Charles"},{id:"tambasco",nom:"Cpl TAMBASCO Adrien"},{id:"wicht",nom:"Cpl WICHT Nicolas"},{id:"chal-g",nom:"App CHAL Gilles"},{id:"dikamona",nom:"App DIKAMONA Stanislas"},{id:"nossek",nom:"App NOSSEK Nicolas"},{id:"odier",nom:"App ODIER Nicolas"},{id:"benabdallah",nom:"Sap BEN ABDALLAH Ahmed"},{id:"buffelli",nom:"Sap BUFFELLI Enea"},{id:"carton",nom:"Sap CARTON Lauryn"},{id:"chal-a",nom:"Sap CHAL Arnaud"},{id:"chappuis-b",nom:"Sap CHAPPUIS Bastien"},{id:"cipriano",nom:"Sap CIPRIANO Léa"},{id:"dacosta",nom:"Sap DA COSTA Marco"},{id:"eursels",nom:"Sap EURSELS Eliot"},{id:"fasel-b",nom:"Sap FASEL Bryan"},{id:"fernandez",nom:"Sap FERNANDEZ Danys"},{id:"fracheboud",nom:"Sap FRACHEBOUD Julien"},{id:"giuntini",nom:"Sap GIUNTINI Grégory"},{id:"hauswirth",nom:"Sap HAUSWIRTH Soline"},{id:"heribi",nom:"Sap HERIBI Ouassim"},{id:"keller",nom:"Sap KELLER Maxime"},{id:"koelle",nom:"Sap KOELLE Rachel"},{id:"kueviakoe",nom:"Sap KUEVIAKOE Messan"},{id:"laperrouza",nom:"Sap LAPERROUZA Oren"},{id:"marioni",nom:"Sap MARIONI Théo"},{id:"meili",nom:"Sap MEILI Guillaume"},{id:"monbaron",nom:"Sap MONBARON Stéphane"},{id:"niang",nom:"Sap NIANG Pape"},{id:"rafrafi",nom:"Sap RAFRAFI Béchir"},{id:"roduit",nom:"Sap RODUIT Matthieu"},{id:"schumacher",nom:"Sap SCHUMACHER Michaël"},{id:"sivapatham",nom:"Sap SIVAPATHAM Thananjayan"}];
+
+function onCheck(mid) {
+  var ck  = document.getElementById("ck-" + mid);
+  var row = document.getElementById("row-" + mid);
+  var inp = document.getElementById("h-" + mid);
+  row.classList.toggle("checked", ck.checked);
+  if (ck.checked && !inp.value.trim()) {
+    var duree = document.getElementById("duree-totale").value.trim();
+    if (duree) {
+      inp.value = duree;
+      inp.classList.add("filled");
+
+    }
+  }
+  if (!ck.checked) {
+    inp.value = "";
+    inp.classList.remove("filled");
+    inp.style.width = (1*0.6+1.2)+"rem";
+  }
+}
+
+function syncPresenceInfo() {
+  var intv = gv("critere1") + (gv("critere2") ? " – " + gv("critere2") : "") + (gv("critere3") ? " – " + gv("critere3") : "");
+  var lieu = gv("adresse-search").trim() + (gv("adresse-numero").trim() ? " " + gv("adresse-numero").trim() : "");
+  var ci   = gv("chef");
+  var date = gv("date-intervention");
+  document.getElementById("pi-intervention").textContent = intv || "—";
+  document.getElementById("pi-lieu").textContent         = lieu || "—";
+  document.getElementById("pi-ci").textContent           = ci   || "—";
+  document.getElementById("pi-date").textContent         = date ? fmtDate(date) : "—";
+}
+
+function genPresencePDF(sendMail) {
+  syncPresenceInfo();
+  var loader = document.getElementById("loader");
+  var loaderTxt = document.getElementById("loader-txt");
+  loader.classList.add("on");
+  loaderTxt.textContent = sendMail ? "Préparation de l'envoi…" : "Génération du PDF présence…";
+
+  setTimeout(function() {
+    try {
+      var jsPDF = window.jspdf.jsPDF;
+      var doc   = new jsPDF({orientation:"portrait", unit:"mm", format:"a4"});
+      var ML=12, W=210, CW=W-ML*2;
+      var y=10;
+      var cb=[14,45,92], ct=[26,29,35], cg=[100,116,139];
+
+      // En-tête
+      doc.addImage("data:image/jpeg;base64,"+LOGO_B64,"JPEG",ML,y,16,16);
+      doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(cb[0],cb[1],cb[2]);
+      doc.text("Sapeurs-Pompiers Plan-les-Ouates",ML+19,y+6);
+      doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(cg[0],cg[1],cg[2]);
+      doc.text("ch. du Pré-Fleuri 5 – 1228 Plan-les-Ouates – sapeurs.pompiers@plan-les-ouates.ch",ML+19,y+11);
+      y+=20;
+      doc.setDrawColor(cb[0],cb[1],cb[2]); doc.setLineWidth(0.5); doc.line(ML,y,ML+CW,y); y+=5;
+
+      doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(cb[0],cb[1],cb[2]);
+      doc.text("Liste de présence",ML,y+5); y+=12;
+
+      var intv = document.getElementById("pi-intervention").textContent;
+      var lieu = document.getElementById("pi-lieu").textContent;
+      var ci   = document.getElementById("pi-ci").textContent;
+      var date = document.getElementById("pi-date").textContent;
+
+      doc.setFillColor(232,242,250); doc.rect(ML,y,CW,16,"F");
+      doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(cg[0],cg[1],cg[2]);
+      doc.text("Intervention :",ML+2,y+4); doc.text("Lieu :",ML+CW/2+2,y+4);
+      doc.text("CI :",ML+2,y+11);          doc.text("Date :",ML+CW/2+2,y+11);
+      doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(ct[0],ct[1],ct[2]);
+      doc.text(intv,ML+22,y+4); doc.text(lieu,ML+CW/2+10,y+4);
+      doc.text(ci,ML+10,y+11); doc.text(date,ML+CW/2+12,y+11);
+      y+=20;
+
+      // Tableau
+      // 2-column layout
+      var RH=6.5, PAGE_H=282, GAP=5;
+      var COL_W=(CW-GAP)/2;
+      var NW=18;
+      var C1=ML, C2=ML+COL_W+GAP;
+
+      // Draw both column headers at current y, then advance y
+      doc.setFillColor(cb[0],cb[1],cb[2]);
+      doc.rect(C1,y,COL_W,7,"F");
+      doc.rect(C2,y,COL_W,7,"F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(7); doc.setTextColor(255,255,255);
+      doc.text("Membre",C1+2,y+5); doc.text("Nbr. h",C1+COL_W-NW+1,y+5);
+      doc.text("Membre",C2+2,y+5); doc.text("Nbr. h",C2+COL_W-NW+1,y+5);
+      y+=9;
+
+      var half=Math.ceil(MEMBRES_PRESENCE.length/2);
+      var col1=MEMBRES_PRESENCE.slice(0,half);
+      var col2=MEMBRES_PRESENCE.slice(half);
+      var rows=Math.max(col1.length,col2.length);
+
+      for(var r=0;r<rows;r++){
+        if(y+RH>PAGE_H){
+          doc.addPage(); y=10;
+          // Repeat headers on new page
+          doc.setFillColor(cb[0],cb[1],cb[2]);
+          doc.rect(C1,y,COL_W,7,"F"); doc.rect(C2,y,COL_W,7,"F");
+          doc.setFont("helvetica","bold"); doc.setFontSize(7); doc.setTextColor(255,255,255);
+          doc.text("Membre",C1+2,y+5); doc.text("Nbr. h",C1+COL_W-NW+1,y+5);
+          doc.text("Membre",C2+2,y+5); doc.text("Nbr. h",C2+COL_W-NW+1,y+5);
+          y+=9;
+        }
+        var m1=col1[r], m2=col2[r];
+        // Col 1
+        if(r%2===0){doc.setFillColor(248,249,250);doc.rect(C1,y,COL_W,RH,"F");}
+        doc.setDrawColor(220,224,230); doc.setLineWidth(0.1); doc.line(C1,y+RH,C1+COL_W,y+RH);
+        doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(ct[0],ct[1],ct[2]);
+        doc.text(doc.splitTextToSize(m1.nom,COL_W-NW-4)[0], C1+2, y+RH-1.5);
+        var h1=document.getElementById("h-"+m1.id).value.trim();
+        if(h1){doc.setFont("helvetica","bold");doc.setTextColor(cb[0],cb[1],cb[2]);doc.text(h1,C1+COL_W-NW+1,y+RH-1.5);}
+        // Col 2
+        if(m2){
+          if(r%2===0){doc.setFillColor(248,249,250);doc.rect(C2,y,COL_W,RH,"F");}
+          doc.setDrawColor(220,224,230); doc.setLineWidth(0.1); doc.line(C2,y+RH,C2+COL_W,y+RH);
+          doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(ct[0],ct[1],ct[2]);
+          doc.text(doc.splitTextToSize(m2.nom,COL_W-NW-4)[0], C2+2, y+RH-1.5);
+          var h2=document.getElementById("h-"+m2.id).value.trim();
+          if(h2){doc.setFont("helvetica","bold");doc.setTextColor(cb[0],cb[1],cb[2]);doc.text(h2,C2+COL_W-NW+1,y+RH-1.5);}
+        }
+        y+=RH;
+      }
+      y+=6;
+
+      var np = gv("non-presents").trim();
+      if (np) {
+        doc.setFillColor(cb[0],cb[1],cb[2]); doc.rect(ML,y,CW,7,"F");
+        doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(255,255,255);
+        doc.text("Personnel surnuméraire / remarques",ML+2,y+5); y+=9;
+        var npL = doc.splitTextToSize(np,CW-4);
+        doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(ct[0],ct[1],ct[2]);
+        doc.text(npL,ML+2,y+4); y+=npL.length*4.5+6;
+      }
+
+      doc.setDrawColor(cb[0],cb[1],cb[2]); doc.setLineWidth(0.4); doc.line(ML,y,ML+CW,y); y+=4;
+      doc.setFont("helvetica","bold"); doc.setFontSize(7.5); doc.setTextColor(cb[0],cb[1],cb[2]);
+      doc.text("Ce rapport est à l'usage exclusif du service",ML,y);
+
+      var filename = "liste_presence_" + gv("date-intervention") + ".pdf";
+
+      // Corps email — valeur brute du champ, sans ajouter de "h"
+      var lines = MEMBRES_PRESENCE.map(function(m) {
+        var h = document.getElementById("h-"+m.id).value.trim();
+        return h ? m.nom + " : " + h : "";
+      }).filter(Boolean).join("\n");
+
+      var corps2 = "Liste de présence – Sapeurs-Pompiers Plan-les-Ouates\n"
+        + "==================================================\n"
+        + "Intervention : " + intv + "\n"
+        + "Lieu : " + lieu + "  |  CI : " + ci + "  |  Date : " + date + "\n\n"
+        + "PRÉSENTS (heures)\n" + lines
+        + (np ? "\n\nNON-PRÉSENTS / REMARQUES\n" + np : "")
+        + "\n\n--\nVeuillez joindre le PDF (" + filename + ").\nCe rapport est à l'usage exclusif du service.";
+
+      var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+
+      if (sendMail) {
+        var blob = doc.output("blob");
+        var pdfFile = new File([blob], filename, {type:"application/pdf"});
+        var sujet2 = "Liste de présence – " + intv + " – " + date;
+
+        var a2 = document.createElement("a");
+        a2.href = URL.createObjectURL(blob);
+        a2.download = filename;
+        document.body.appendChild(a2); a2.click(); document.body.removeChild(a2);
+        setTimeout(function() { URL.revokeObjectURL(a2.href); }, 15000);
+        loader.classList.remove("on");
+        showToast("📎 PDF téléchargé – joignez-le à votre mail");
+        var to2 = encodeURIComponent(DEST_BASE.join(","));
+        var sujet2 = "Liste de présence – " + intv + " – " + date;
+        var mailto2 = "mailto:"+to2+"?subject="+encodeURIComponent(sujet2)+"&body="+encodeURIComponent(corps2);
+        setTimeout(function() { window.location.href = mailto2; }, 1500);
+
+      } else {
+        var pdfBlob = doc.output("blob");
+        var pdfFile3 = new File([pdfBlob], filename, {type:"application/pdf"});
+        if (navigator.canShare && navigator.canShare({files:[pdfFile3]})) {
+          navigator.share({files:[pdfFile3], title:filename}).catch(function(){});
+          showToast("✅ PDF prêt");
+        } else if (isIOS) {
+          window.open(URL.createObjectURL(pdfBlob),"_blank");
+          showToast("✅ PDF présence ouvert");
+        } else {
+          doc.save(filename);
+          showToast("✅ PDF présence généré !");
+        }
+        loader.classList.remove("on");
+      }
+    } catch(err) {
+      loader.classList.remove("on");
+      showToast("❌ Erreur : "+err.message);
+      console.error(err);
+    }
+  },50);
+}
+
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
+function showToast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.style.display = "block";
+  clearTimeout(window._tt);
+  window._tt = setTimeout(function() { t.style.display = "none"; }, 4500);
+}
+
+</script>
+</body>
+</html>
